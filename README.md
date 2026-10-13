@@ -19,6 +19,7 @@ dependency so the project can evolve on its own.
 | `ilias_logout`                 | Remove the saved session / token                                      |
 | `ilias_list_courses`           | List enrolled courses                                                 |
 | `ilias_list_course_contents`   | Walk one course's sections / modules / files (`query` + optional depth) |
+| `report_issue`                 | After a tool error: with user consent, returns pre-filled GitHub / mailto links (nothing is sent automatically) |
 
 > Assignments / deadlines and assignment uploads are **not** implemented yet -
 > the underlying CLI does not support them. Once that changes they will be
@@ -137,6 +138,25 @@ uv run ilias-mcp --help
 Same `command` + `args` + `env` shape as above. Codex reads
 `~/.codex/config.toml`; Hermes reads `~/.hermes/profiles/<profile>/config.yaml`
 or per-session settings.
+
+## Fehler melden ohne GitHub-Kenntnisse
+
+Wenn ein MCP-Tool fehlschlägt, enthält die Antwort ein anonymisiertes Feld `report`
+(Instanz-Schlüssel wie `hhn`, LMS-Typ, Login-Art, Tool, Fehlerschritt, Fehlerklasse,
+HTTP-Status, ilias-mcp-Version, Python/OS) sowie `agent_hint`. Der Agent soll Sie
+**fragen**, ob der Fehler gemeldet werden darf – es wird nichts automatisch
+übertragen.
+
+Stimmen Sie zu, ruft der Agent `report_issue` mit `consent=true` und dem `report`
+aus der Fehlerantwort auf. Sie erhalten dann:
+
+- einen **GitHub-Link** zum Anlegen eines Issues im Repo
+  [`smlfg/ilias-mcp`](https://github.com/smlfg/ilias-mcp/issues/new) (Label `auto-report`), und
+- optional einen **mailto:**-Link als Alternative ohne GitHub-Konto.
+
+Passwörter, Tokens, Kursnamen, Dateinamen und URLs mit Query-Parametern werden vor dem
+Link-Bau redigiert. Optional können Sie `ILIAS_MCP_REPORT_MAILTO` setzen, um die
+Standard-Empfängeradresse für den mailto-Link zu überschreiben.
 
 ## Testing
 
