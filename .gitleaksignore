@@ -1,0 +1,2 @@
+# gitleaks false positives (fingerprint = commit:file:rule:line).
+# Only add entries after checking the value is NOT a real secret; add a reason.
