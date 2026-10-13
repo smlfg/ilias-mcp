@@ -1,0 +1,113 @@
+"""Kernbibliothek der ILIAS-/Moodle-CLI.
+
+Enthält Konfiguration (ein Instanz-Register für ILIAS und Moodle), Auth, Session,
+Backends (``ilias``, ``moodle``), Service (Kurse/Inhalt), Modelle und Fehler.
+CLI und der spätere MCP-Server sind dünne Hüllen über diesen Funktionen.
+"""
+
+from .client import IliasClient
+from .config import (
+    BUILTIN_INSTANCES,
+    DEFAULT_BASE_URL,
+    DEFAULT_CLIENT_ID,
+    Config,
+    Instance,
+    InstanceProfile,
+    config_dir,
+    config_path,
+    load_config,
+    load_instance,
+)
+from .errors import (
+    AuthenticationError,
+    BrowserUnavailableError,
+    ConfigError,
+    CourseAmbiguousError,
+    CourseNotFoundError,
+    CrawlLimitError,
+    IliasError,
+    NetworkError,
+    NotLoggedInError,
+    NotSupportedError,
+    ParserError,
+    PermissionDeniedError,
+    SessionExpiredError,
+)
+from .models import (
+    Course,
+    CourseContentsResult,
+    CoursesResult,
+    Credentials,
+    ErrorResult,
+    FileNode,
+    FolderNode,
+    ItemNode,
+    LoginResult,
+    LogoutResult,
+    Module,
+    MoodleLoginResult,
+    MoodleStatusResult,
+    Section,
+    SessionStatus,
+    SiteInfo,
+    UrlNode,
+)
+from .secrets import Secret
+from .service import Service, open_service, resolve_course, trim_sections
+from .timeutil import semester_from_timestamp, timestamp_to_iso
+from .tokens import StoredSession, TokenStore
+from .version import __version__
+
+__all__ = [
+    "BUILTIN_INSTANCES",
+    "DEFAULT_BASE_URL",
+    "DEFAULT_CLIENT_ID",
+    "AuthenticationError",
+    "BrowserUnavailableError",
+    "Config",
+    "ConfigError",
+    "Course",
+    "CourseAmbiguousError",
+    "CourseContentsResult",
+    "CourseNotFoundError",
+    "CoursesResult",
+    "CrawlLimitError",
+    "Credentials",
+    "ErrorResult",
+    "FileNode",
+    "FolderNode",
+    "IliasClient",
+    "IliasError",
+    "Instance",
+    "InstanceProfile",
+    "ItemNode",
+    "LoginResult",
+    "LogoutResult",
+    "Module",
+    "MoodleLoginResult",
+    "MoodleStatusResult",
+    "NetworkError",
+    "NotLoggedInError",
+    "NotSupportedError",
+    "ParserError",
+    "PermissionDeniedError",
+    "Secret",
+    "Section",
+    "Service",
+    "SessionExpiredError",
+    "SessionStatus",
+    "SiteInfo",
+    "StoredSession",
+    "TokenStore",
+    "UrlNode",
+    "__version__",
+    "config_dir",
+    "config_path",
+    "load_config",
+    "load_instance",
+    "open_service",
+    "resolve_course",
+    "semester_from_timestamp",
+    "timestamp_to_iso",
+    "trim_sections",
+]
