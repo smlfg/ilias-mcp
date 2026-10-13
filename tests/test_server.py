@@ -172,6 +172,13 @@ class TestErrorPayload:
         assert payload["instance"] is None
         assert payload["lms"] is None
 
+    def test_payload_includes_report_and_agent_hint(self) -> None:
+        exc = AuthenticationError("Login fehlgeschlagen")
+        payload = server_mod._error_to_payload("login", exc, None)
+        assert payload["agent_hint"]
+        assert payload["report"]["tool"] == "login"
+        assert payload["report"]["error_class"] == "auth"
+
 
 # ----------------------------------------------------------- Tool-Handler
 class TestToolHandlers:
@@ -321,6 +328,7 @@ class TestToolRegistration:
             "ilias_logout",
             "ilias_list_courses",
             "ilias_list_course_contents",
+            "report_issue",
         }
 
     def test_tools_have_descriptions(self) -> None:

@@ -54,6 +54,7 @@ async def test_stdio_roundtrip_tools_list() -> None:
             assert "ilias_logout" in names
             assert "ilias_list_courses" in names
             assert "ilias_list_course_contents" in names
+            assert "report_issue" in names
 
 
 @pytest.mark.asyncio
