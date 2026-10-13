@@ -15,6 +15,7 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "keyring>=25.0",
     "pydantic>=2.6",
+    "pyotp>=2.8",  # ILIAS HHN: TOTP-Code für Keycloak-Login
 ]
 
 [project.optional-dependencies]

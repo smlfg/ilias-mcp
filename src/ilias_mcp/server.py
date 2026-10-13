@@ -118,9 +118,9 @@ def _totp_callback(secret: str | None) -> Callable[[], str] | None:
     keinen Code an (Backends, die TOTP benötigen, würden so fehlschlagen).
     """
 
-    if not secret:
+    secret_value = (secret or "").strip()
+    if not secret_value:
         return None
-    secret_value = secret
 
     def _code() -> str:
         # Lazy import, damit TOTP nur dann geladen wird, wenn es wirklich

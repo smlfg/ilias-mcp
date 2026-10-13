@@ -68,6 +68,12 @@ cp .env.example .env
 | `ILIAS_TOTP_SECRET`   | Optional: base32 TOTP secret for HHN Keycloak (else runtime)    |
 | `ILIAS_CLI_CONFIG_DIR` | Optional: override `~/.config/ilias-cli` for the config / session storage |
 
+`pyotp` is installed automatically as a hard dependency (no `uv sync --extra …`
+needed) because the HHN Keycloak login requires a TOTP code. Set
+`ILIAS_TOTP_SECRET` to your base32 secret to skip the interactive prompt, or
+leave it empty to enter the code per session via the tool's `password=` argument
+or by calling the Keycloak login in a browser (`ILIAS_LOGIN_BROWSER=1`).
+
 The token / session is persisted in the OS keyring when available (preferred)
 or in `chmod 600` JSON inside the config dir as fallback.
 
