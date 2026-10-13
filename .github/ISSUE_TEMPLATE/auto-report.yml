@@ -1,0 +1,48 @@
+name: Automatischer Fehlerbericht (ilias-mcp)
+description: Vom MCP-Feedback-Kanal vorausgefüllt – persönliche Daten wurden redigiert.
+title: "[auto-report] "
+labels:
+  - auto-report
+body:
+  - type: markdown
+    validations:
+      required: false
+    attributes:
+      value: |
+        Dieses Formular wird oft über den Link aus dem MCP-Tool `report_issue` geöffnet.
+        Bitte nicht löschen: die Labels helfen beim Sortieren. Wenn etwas fehlt, ergänzen Sie
+        die Abschnitte unten in eigenen Worten.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Zusammenfassung
+      description: Was haben Sie versucht? Was ist schiefgelaufen?
+      placeholder: Kurz in eigenen Worten …
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Umgebung (aus dem Bericht)
+      description: Hochschule/Instanz, LMS, Login-Art, ilias-mcp-Version – aus dem vorausgefüllten Body kopieren oder hier ergänzen.
+      placeholder: institution=hhn, lms=ilias, auth_method=oidc-keycloak, …
+    validations:
+      required: false
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduktion
+      description: Schritte, damit wir den Fehler nachstellen können (ohne Passwörter oder Tokens).
+      placeholder: |
+        1. ILIAS_INSTANCE=hhn gesetzt
+        2. ilias_login aufgerufen
+        3. …
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+      placeholder: Was hätte passieren sollen?
+    validations:
+      required: false
