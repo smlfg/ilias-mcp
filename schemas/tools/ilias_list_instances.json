@@ -1,0 +1,70 @@
+{
+  "name": "ilias_list_instances",
+  "title": "ILIAS-/Moodle-Instanzen auflisten",
+  "description": "Zweck: Bekannte Lernplattform-Instanzen (eingebaut + ilias-cli-Konfiguration) auflisten und zeigen, ob lokal eine Session-Datei liegt.\nWann nutzen: Zuerst, um einen gültigen instance-Wert zu finden.\nWann nicht: Ob die Session wirklich gültig ist, prüft ilias_get_status.\nSeiteneffekte: Keine; kein Netzwerk, liest nur lokale Konfiguration.\nRückgabe: default_instance und instances[] mit key, lms, base_url, session_file_present.",
+  "annotations": {
+    "title": "ILIAS-/Moodle-Instanzen auflisten",
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "outputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "default_instance",
+      "instances"
+    ],
+    "properties": {
+      "default_instance": {
+        "type": "string"
+      },
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "lms",
+            "base_url",
+            "label",
+            "builtin",
+            "session_file_present"
+          ],
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "lms": {
+              "type": "string",
+              "enum": [
+                "ilias",
+                "moodle"
+              ]
+            },
+            "base_url": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "builtin": {
+              "type": "boolean"
+            },
+            "session_file_present": {
+              "type": "boolean",
+              "description": "Nur Datei-Fallback; eine Session im OS-Schlüsselbund wird hier nicht erkannt."
+            }
+          }
+        }
+      }
+    }
+  }
+}
