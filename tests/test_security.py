@@ -101,3 +101,12 @@ def test_ct5_redirect_guard_one_request(logged_in: FakeIlias, config_dir: Path, 
     assert r.structured_content["error"]["code"] == "session_expired"
     assert len(logged_in.requests) == 1
     assert session.read_bytes() == before
+
+
+# SEC-24 -----------------------------------------------------------------------
+@pytest.mark.parametrize("course", ["http://169.254.169.254/latest", "https://evil.example/x"])
+def test_sec24_inputs_never_choose_host(logged_in: FakeIlias, course):
+    r = call("ilias_list_contents", {"course": course})
+    assert r.is_error
+    assert r.structured_content["error"]["code"] == "course_not_found"
+    assert all(req.path.startswith("/ilias.php") or req.path.startswith("/go/") for req in logged_in.requests)
