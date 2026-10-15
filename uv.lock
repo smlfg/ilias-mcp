@@ -486,7 +486,9 @@ name = "ilias-mcp"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
+    { name = "anyio" },
     { name = "ilias-cli" },
+    { name = "jsonschema" },
     { name = "mcp" },
     { name = "pydantic" },
 ]
@@ -502,7 +504,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anyio", specifier = ">=4,<5" },
     { name = "ilias-cli", git = "https://github.com/smlfg/ilias-cli?rev=24b9d888955b58bafe4dce8833b8265d839cc5bd" },
+    { name = "jsonschema", specifier = ">=4.20,<5" },
     { name = "mcp", specifier = ">=2.3,<3" },
     { name = "pydantic", specifier = ">=2.7,<3" },
 ]

@@ -20,6 +20,8 @@ classifiers = [
 dependencies = [
   "mcp>=2.3,<3",
   "pydantic>=2.7,<3",
+  "jsonschema>=4.20,<5",
+  "anyio>=4,<5",
   # The CLI is a dependency, not a copy (DESIGN A1). Pinned to a commit on main
   # until ilias-cli has a release tag / PyPI release.
   "ilias-cli @ git+https://github.com/smlfg/ilias-cli@24b9d888955b58bafe4dce8833b8265d839cc5bd",
