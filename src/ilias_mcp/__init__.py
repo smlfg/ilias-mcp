@@ -1,7 +1,3 @@
-"""ilias-mcp: MCP-Server für ILIAS und Moodle (siehe :mod:`ilias_mcp.server`)."""
+"""ilias-mcp: read-only MCP server (stdio) over the ilias-cli core."""
 
-from __future__ import annotations
-
-from .server import build_server, main, mcp
-
-__all__ = ["build_server", "main", "mcp"]
+__version__ = "0.2.0"

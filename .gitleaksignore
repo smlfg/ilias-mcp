@@ -1,0 +1,4 @@
+# Known test canary from the 0.1.0 history (tests/test_feedback.py: password=hunter2
+# with a fake token). Confirmed by GitHubManager and AgenticSecutrity as not a real
+# secret; the file is gone on this branch. Fingerprint from `gitleaks detect`.
+9323f0dfe249f758d4b37886f137ff152fbea635:tests/test_feedback.py:generic-api-key:241

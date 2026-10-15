@@ -1,168 +1,92 @@
 # ilias-mcp
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server for the
-**ILIAS** learning platform (Hochschule Heilbronn HHN, Uni Mannheim) and
-**Moodle** (HS Mannheim). Lets LLM-based agents in Claude Desktop, Cursor, Codex
-and other MCP clients log in, check the session, list courses and walk a course's
-content as a tree of sections, modules and files.
+Read-only [MCP](https://modelcontextprotocol.io) server (stdio) for **ILIAS** (HS Heilbronn, Uni Mannheim) and **Moodle** (HS Mannheim). It is a thin wrapper around [ilias-cli](https://github.com/smlfg/ilias-cli): the server imports its `ilias_core` package and reuses the session that `ilias login` stored. It never logs in and never sees a password or 2FA code.
 
-This is an independent fork of [`ilias-cli`](https://github.com/smlfg/ilias-cli);
-the core library (`src/ilias_mcp_core/`) is vendored rather than imported as a
-dependency so the project can evolve on its own.
+## Tools
 
-## Features
+| Tool | Purpose | Network |
+|---|---|---|
+| `ilias_list_instances` | Known instances (built-in + `config.toml`) and whether a session file exists | none |
+| `ilias_get_status` | Is the stored session for an instance valid? | 1 GET (ILIAS) |
+| `ilias_list_courses` | Own courses and groups with `id` (ref_id), title, semester, URL | 1 GET (ILIAS) |
+| `ilias_list_contents` | Content tree of one course (`course` = ref_id or unique title part, `depth` 1–5, default 2) | ~1 GET per folder level, budget ≤ 60 |
 
-| MCP tool                       | What it does                                                          |
-| ------------------------------ | --------------------------------------------------------------------- |
-| `ilias_login`                  | Log in via credentials (env / runtime args) or browser                 |
-| `ilias_status`                 | Check whether a saved session is still valid                          |
-| `ilias_logout`                 | Remove the saved session / token                                      |
-| `ilias_list_courses`           | List enrolled courses                                                 |
-| `ilias_list_course_contents`   | Walk one course's sections / modules / files (`query` + optional depth) |
+All tools are read-only (`readOnlyHint: true`, `destructiveHint: false`). Errors come back as `isError: true` with a stable `code`:
 
-> Assignments / deadlines and assignment uploads are **not** implemented yet -
-> the underlying CLI does not support them. Once that changes they will be
-> added here without breaking the existing tool names.
+| ilias-cli exit | `code` | Meaning / next step |
+|---|---|---|
+| 1 | `auth_failed`, `config_error`, `not_supported`, `course_not_found`, `course_ambiguous` (with `candidates`), `permission_denied` | fix the input or use `ilias_list_courses` / `ilias_list_instances` |
+| 2 | `not_logged_in` | the user runs `ilias login --instance <x>` in their own terminal |
+| 3 | `session_expired` | same, do not retry automatically |
+| 4 | `network_error` | try again later (VPN?) |
+| 5 | `parse_error`, `crawl_limit` | unexpected page / request budget exhausted |
 
-## Transport
+Tool definitions live in [`schemas/tools/`](schemas/tools) and are the single source for names, descriptions, annotations and schemas.
 
-`stdio` (default) only. Suitable for local MCP clients like Claude Desktop,
-Cursor, Codex, Hermes, Claude Code, OpenCode etc.
-
-## Setup
-
-### 1. Install
+## Installation
 
 ```bash
-git clone <this-repo> ilias-mcp
-cd ilias-mcp
-uv sync
+# 1. CLI: log in once, in your own terminal (password/2FA never go through MCP)
+uv tool install "git+https://github.com/smlfg/ilias-cli"
+ilias login --instance hhn
+
+# 2. MCP server
+uvx --from "git+https://github.com/smlfg/ilias-mcp" ilias-mcp
 ```
 
-Requires Python 3.11 or 3.12 (the vendored core was written against 3.11; MCP
-SDK 1.9+ still supports 3.12). [`uv`](https://docs.astral.sh/uv/) handles the
-venv automatically.
+After the PyPI release: `uvx ilias-mcp`.
 
-Optional, for browser-based login on ILIAS HHN / Uni Mannheim:
+## Client configuration
 
-```bash
-uv sync --extra browser
-uv run playwright install chromium
-```
-
-### 2. Configure credentials
-
-**Never** put credentials in code or commit them. Set them via environment
-variables (`.env`, shell, or whatever your host application supports):
-
-```bash
-cp .env.example .env
-# then edit .env
-```
-
-| Variable              | Purpose                                                         |
-| --------------------- | --------------------------------------------------------------- |
-| `ILIAS_INSTANCE`      | `hhn`, `uni-mannheim` or `hs-mannheim` (default: `hhn`)         |
-| `ILIAS_USERNAME`      | Username                                                        |
-| `ILIAS_PASSWORD`      | Password (for ILIAS) or web-service token (for HS-Mannheim)     |
-| `ILIAS_TOTP_SECRET`   | Optional: base32 TOTP secret for HHN Keycloak (else runtime)    |
-| `ILIAS_CLI_CONFIG_DIR` | Optional: override `~/.config/ilias-cli` for the config / session storage |
-
-The token / session is persisted in the OS keyring when available (preferred)
-or in `chmod 600` JSON inside the config dir as fallback.
-
-### 3. Run
-
-```bash
-uv run ilias-mcp              # stdio, ready for MCP clients
-```
-
-Or as a one-shot (for debugging):
-
-```bash
-uv run ilias-mcp --help
-```
-
-## MCP client configuration
-
-### Claude Desktop
-
-`~/.config/Claude/claude_desktop_config.json` (Linux) or
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+**Claude Desktop** (`claude_desktop_config.json`) / **Cursor** (`.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "ilias": {
-      "command": "uv",
-      "args": ["--directory", "/absolute/path/to/ilias-mcp", "run", "ilias-mcp"],
-      "env": {
-        "ILIAS_INSTANCE": "hhn",
-        "ILIAS_USERNAME": "your-username",
-        "ILIAS_PASSWORD": "your-password"
-      }
-    }
+    "ilias": { "command": "uvx", "args": ["--from", "git+https://github.com/smlfg/ilias-mcp", "ilias-mcp"] }
   }
 }
 ```
 
-### Cursor
+**Claude Code:**
 
-`~/.cursor/mcp.json`:
+```bash
+claude mcp add ilias -- uvx --from git+https://github.com/smlfg/ilias-mcp ilias-mcp
+```
+
+**OpenCode** (`opencode.json`):
 
 ```json
 {
-  "mcpServers": {
-    "ilias": {
-      "command": "uv",
-      "args": ["--directory", "/absolute/path/to/ilias-mcp", "run", "ilias-mcp"],
-      "env": {
-        "ILIAS_INSTANCE": "hhn",
-        "ILIAS_USERNAME": "your-username",
-        "ILIAS_PASSWORD": "your-password"
-      }
-    }
+  "mcp": {
+    "ilias": { "type": "local", "command": ["uvx", "--from", "git+https://github.com/smlfg/ilias-mcp", "ilias-mcp"] }
   }
 }
 ```
 
-### Codex / OpenCode / Hermes
+## Login and prerequisites
 
-Same `command` + `args` + `env` shape as above. Codex reads
-`~/.codex/config.toml`; Hermes reads `~/.hermes/profiles/<profile>/config.yaml`
-or per-session settings.
-
-## Testing
-
-```bash
-uv run pytest
-```
-
-Tests use `respx` for HTTP and `pytest-asyncio` for async MCP I/O. No real
-ILIAS login is performed.
-
-## Architecture
-
-```
-src/ilias_mcp_core/   vendored fork of ilias-cli core library
-src/ilias_mcp/        MCP server (FastMCP, stdio)
-tests/                pytest, all mocked
-```
-
-The vendored core is intentional: the server needs to evolve independently of
-the upstream CLI. Re-vendoring from upstream is a deliberate, manual step.
+- Log in with the CLI only: `ilias login --instance hhn` (HHN: Keycloak + TOTP), `--instance uni-mannheim` (Shibboleth), `--instance hs-mannheim` (Moodle).
+- The session lives in the OS keyring or, as a fallback, in `~/.config/ilias-cli/session-<instance>.json` / `sessions/<instance>.json`. **The server refuses to start** (exit 78) if one of these files or `config.toml` is readable by group/others or is a symlink: `chmod 600 <file>`.
+- `ILIAS_CLI_CONFIG_DIR` overrides the config directory, exactly as for the CLI.
 
 ## Security
 
-- Credentials only ever come from environment variables or runtime tool
-  arguments; never from disk, never from the user-facing config that lives in
-  the repo.
-- The session token is stored in the OS keyring when available (preferred) or
-  in a `0600` JSON file under the config directory.
-- No credentials, cookies, tokens or passwords appear in tool output,
-  exception messages, traces or logs. The `Secret` type from the vendored core
-  enforces this.
+See [SECURITY.md](SECURITY.md) and [THREAT_MODEL.md](THREAT_MODEL.md). In short: read-only, no login tool, GET-only against ILIAS, redirects to login/IdP/foreign hosts end the call with `session_expired` after one request, every returned string is sanitised (ANSI, control, zero-width/bidi, markdown images/links, credential query values) and course content is marked as data, not instructions. No telemetry.
+
+## Development and tests
+
+```bash
+uv sync --locked
+uv run pytest --cov            # localhost-only; a socket guard fails any external connect
+uv run ruff check . && uv run pyright
+npx @modelcontextprotocol/inspector uv run ilias-mcp   # manual check
+```
+
+Tests use a synthetic localhost ILIAS (`tests/fake_ilias.py`) and the in-memory `mcp.Client`. Changing a tool definition requires `uv run python scripts/update_snapshot.py` and a reviewed snapshot diff.
 
 ## License
 
-MIT, see [`LICENSE`](LICENSE).
+MIT, see [LICENSE](LICENSE).
+
+<!-- mcp-name: io.github.smlfg/ilias-mcp -->

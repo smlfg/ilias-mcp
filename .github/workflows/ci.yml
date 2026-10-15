@@ -1,0 +1,72 @@
+# SEC-CI-1: pull_request / push / workflow_dispatch only — never pull_request_target.
+# SEC-CI-3: checkout with persist-credentials: false.
+# Runs without repository secrets so fork / model-run PRs get the same checks.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Sync locked deps
+        run: uv sync --locked --all-groups
+      - name: ruff
+        run: uv run ruff check .
+      - name: pyright
+        run: uv run pyright
+      - name: pytest
+        run: uv run pytest --cov --cov-report=term-missing
+      - name: versions match
+        run: |
+          py=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          server=$(python -c "import json; print(json.load(open('server.json'))['version'])")
+          test "$py" = "$server"
+
+  dep-guard:
+    name: dep-guard (SEC-9)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Fail on unapproved dependency changes
+        env:
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+          if echo ",$LABELS," | grep -q ",deps-approved,"; then
+            echo "Label deps-approved present; skipping."
+            exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -E '^(pyproject\.toml|uv\.lock)$'; then
+            echo "::error::pyproject.toml / uv.lock changed without the deps-approved label (SEC-9)."
+            exit 1
+          fi
+          echo "No dependency file changes."

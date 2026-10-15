@@ -1,43 +1,86 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "ilias-mcp"
-version = "0.1.0"
-description = "MCP-Server für ILIAS (HHN, Uni Mannheim) und Moodle (HS Mannheim): Login, Session-Status, Kurse, Kursinhalte."
+version = "0.2.0"
+description = "Read-only MCP server (stdio) for ILIAS (HHN, Uni Mannheim) and Moodle (HS Mannheim): thin wrapper around ilias-cli"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
-license = { text = "MIT" }
-authors = [{ name = "ilias-mcp" }]
-keywords = ["mcp", "model-context-protocol", "ilias", "moodle", "lms"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Samuel Fleig" }]
+requires-python = ">=3.11"
+keywords = ["mcp", "mcp-server", "model-context-protocol", "ilias", "moodle", "lms"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
 dependencies = [
-    "mcp>=1.9.0,<2",
-    "httpx>=0.27",
-    "typer>=0.12",
-    "rich>=13.7",
-    "beautifulsoup4>=4.12",
-    "keyring>=25.0",
-    "pydantic>=2.6",
+  "mcp>=2.3,<3",
+  "pydantic>=2.7,<3",
+  "jsonschema>=4.20,<5",
+  "anyio>=4,<5",
+  # The CLI is a dependency, not a copy (DESIGN A1). Pinned to a commit on main
+  # until ilias-cli has a release tag / PyPI release.
+  "ilias-cli @ git+https://github.com/smlfg/ilias-cli@24b9d888955b58bafe4dce8833b8265d839cc5bd",
 ]
 
-[project.optional-dependencies]
-browser = ["playwright>=1.40"]
+[project.urls]
+Homepage = "https://github.com/smlfg/ilias-mcp"
+Source = "https://github.com/smlfg/ilias-mcp"
 
 [project.scripts]
 ilias-mcp = "ilias_mcp.server:main"
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-    "respx>=0.21",
+  "pytest>=8",
+  "pytest-cov>=5",
+  "anyio>=4",
+  "ruff>=0.6",
+  "pyright>=1.1.380",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ilias_mcp", "src/ilias_mcp_core"]
+packages = ["src/ilias_mcp"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schemas" = "ilias_mcp/schemas"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "BLE"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B", "E501"]
+"scripts/**" = ["S"]
+# Vendored unchanged from cli-mcp-template (SEC-11); keep it byte-identical.
+"scripts/pii_guard.py" = ["S", "E501"]
+
+[tool.pyright]
+include = ["src"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["ilias_mcp"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
