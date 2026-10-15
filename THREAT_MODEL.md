@@ -33,6 +33,10 @@ Template: SECURITY_BASELINE §8. Version 0.2.0 (stdio only, four read-only tools
 | Supply chain | `uv.lock` with hashes, `uv sync --locked`, pip-audit, bandit, CodeQL, Dependabot, dep-guard, actions pinned by SHA | SEC-6..9 |
 | Malicious model-run commits | Small reviewed PRs, dep-guard, snapshot test, security gate before merge | SEC-9, §7 |
 
+## Deployment
+
+**No Cloudflare Worker for ILIAS** (SEC-22): this is a login CLI. The MCP server runs only as local stdio. ClaudeFlare does not deploy a Worker for this repo.
+
 ## Residual risks
 - **Moodle (hs-mannheim)**: the Moodle web-service protocol uses `POST /webservice/rest/server.php` for read functions (token in the body, not the URL). CT-3 "never POST" is enforced for ILIAS only; on `session_expired` ilias-cli deletes the stale Moodle token file (local side effect).
 - Sanitising cannot remove semantic injection ("ignore previous instructions" stays readable as data); clients must treat tool output as untrusted.

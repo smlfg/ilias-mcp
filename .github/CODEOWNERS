@@ -1,0 +1,9 @@
+# SEC-OWN-1: changes to CI, tool definitions, sanitising, and the dependency lock
+# always need review by AgenticSecutrity (or Samuel). Model-run PRs must not merge alone.
+
+.github/ @smlfg
+schemas/tools/ @smlfg
+src/ilias_mcp/sanitize.py @smlfg
+src/ilias_mcp/core.py @smlfg
+pyproject.toml @smlfg
+uv.lock @smlfg
