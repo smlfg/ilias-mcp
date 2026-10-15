@@ -28,12 +28,25 @@ jobs:
       - name: Install gitleaks
         run: |
           set -euo pipefail
-          ver=v8.30.1
-          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/${ver}/gitleaks_${ver#v}_linux_x64.tar.gz" \
-            | tar -xz -C /usr/local/bin gitleaks
+          ver=8.30.1
+          sha=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          curl -fsSL -o /tmp/gitleaks.tgz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${ver}/gitleaks_${ver}_linux_x64.tar.gz"
+          echo "${sha}  /tmp/gitleaks.tgz" | sha256sum -c -
+          sudo tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks
           gitleaks version
       - name: Scan
         run: gitleaks detect --source . --verbose --redact --exit-code 1
+
+  pii-guard:
+    name: pii-guard (SEC-11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: No e-mail addresses / Matrikelnummern except .pii-allowlist
+        run: python3 scripts/pii_guard.py
 
   pip-audit:
     name: pip-audit (SEC-6)

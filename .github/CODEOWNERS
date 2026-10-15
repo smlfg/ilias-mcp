@@ -7,3 +7,6 @@ src/ilias_mcp/sanitize.py @smlfg
 src/ilias_mcp/core.py @smlfg
 pyproject.toml @smlfg
 uv.lock @smlfg
+scripts/pii_guard.py @smlfg
+.pii-allowlist @smlfg
+.gitleaksignore @smlfg
