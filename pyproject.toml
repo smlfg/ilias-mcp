@@ -63,6 +63,8 @@ ignore = ["S101"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B", "E501"]
 "scripts/**" = ["S"]
+# Vendored unchanged from cli-mcp-template (SEC-11); keep it byte-identical.
+"scripts/pii_guard.py" = ["S", "E501"]
 
 [tool.pyright]
 include = ["src"]
