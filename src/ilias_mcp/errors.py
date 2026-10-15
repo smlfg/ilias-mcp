@@ -161,5 +161,7 @@ def from_core_error(exc: BaseException, instance: str = "") -> ToolFailure:
         code = EXIT_TO_CODE.get(exit_code, "internal_error") if isinstance(exit_code, int) else (
             "internal_error"
         )
-    candidates = _clean_candidates(getattr(exc, "candidates", None)) if code == "course_ambiguous" else []
+    candidates: list[dict[str, Any]] = []
+    if code == "course_ambiguous":
+        candidates = _clean_candidates(getattr(exc, "candidates", None))
     return ToolFailure(code, instance=instance, candidates=candidates)

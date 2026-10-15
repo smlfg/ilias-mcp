@@ -66,6 +66,8 @@ ignore = ["S101"]
 
 [tool.pyright]
 include = ["src"]
+venvPath = "."
+venv = ".venv"
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
 

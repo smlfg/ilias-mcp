@@ -141,7 +141,9 @@ def build_server(core: Core | None = None) -> MCPServer:
 
     @server.tool(name="ilias_list_contents")
     async def ilias_list_contents(
-        course: Annotated[str, Field(min_length=1, max_length=200, description="ref_id oder Titelteil")],
+        course: Annotated[
+            str, Field(min_length=1, max_length=200, description="ref_id oder Titelteil")
+        ],
         depth: Annotated[int, Field(ge=1, le=5, description="Baumtiefe")] = 2,
         instance: InstanceArg = None,
     ) -> CallToolResult:

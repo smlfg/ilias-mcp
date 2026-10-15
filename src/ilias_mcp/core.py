@@ -80,7 +80,7 @@ class Core:
                 token = getattr(stored, "token", None)
                 if isinstance(token, str):
                     out.append(token)
-        except Exception:  # noqa: BLE001 - redaction is best effort, never fatal
+        except Exception:  # noqa: BLE001, S110 - redaction is best effort, never fatal
             pass
         return out
 
